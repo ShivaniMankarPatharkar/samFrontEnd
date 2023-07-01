@@ -1,130 +1,142 @@
-import React, { useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-import Form from "react-validation/build/form";
-import Input from "react-validation/build/input";
-import CheckButton from "react-validation/build/button";
+import React, { useState } from "react"
+import { Link, redirect } from "react-router-dom"
+import {
+  CButton,
+  CCard,
+  CCardBody,
+  CCardGroup,
+  CCol,
+  CContainer,
+  CForm,
+  CFormInput,
+  CInputGroup,
+  CInputGroupText,
+  CRow
+} from "@coreui/react"
+import CIcon from "@coreui/icons-react"
+import { cilLockLocked, cilUser } from "@coreui/icons"
+import { initializeApp } from "firebase/app"
+import {
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  getAuth
+} from "firebase/auth"
+import { useNavigate } from "react-router-dom"
 
-import AuthServiceCopy from "../services/auth.service-copy";
+const firebaseConfig = {
+  apiKey: "AIzaSyDWSQU1EcMIsu63oI-FdndsePSue7HVCSE",
+  authDomain: "hsbc-greensavers-sams-dev.firebaseapp.com"
+}
 
-const required = (value) => {
-  if (!value) {
-    return (
-      <div className="invalid-feedback d-block">
-        This field is required!
-      </div>
-    );
-  }
-};
+const app = initializeApp(firebaseConfig)
+
+const auth = getAuth(app, {
+  /* extra options */
+})
 
 const Login = () => {
-  const form = useRef();
-  const checkBtn = useRef();
+  const navigate = useNavigate()
+  const [emailId, setEmailId] = useState("")
+  const [password, setPassword] = useState("")
 
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
-
-  const navigate = useNavigate();
-
-  const onChangeUsername = (e) => {
-    const username = e.target.value;
-    setUsername(username);
-  };
-
-  const onChangePassword = (e) => {
-    const password = e.target.value;
-    setPassword(password);
-  };
-
-  const handleLogin = (e) => {
-    e.preventDefault();
-    console.log('inside login block')
-
-    setMessage("");
-    setLoading(true);
-
-    form.current.validateAll();
-
-    if (checkBtn.current.context._errors.length === 0) {
-        console.log('inside login block')
-        AuthServiceCopy.signIn(username, password).then(
-        () => {
-          navigate("/profile");
-          window.location.reload();
-        },
-        (error) => {
-          const resMessage =
-            (error.response &&
-              error.response.data &&
-              error.response.data.message) ||
-            error.message ||
-            error.toString();
-
-          setLoading(false);
-          setMessage(resMessage);
-        }
-      );
-    } else {
-      setLoading(false);
-    }
-  };
+  const handleSubmit = e => {
+    e.preventDefault()
+    console.log(emailId)
+    console.log(password)
+    console.log("success")
+    signInWithEmailAndPassword(auth, emailId, password)
+      .then(function (firebaseUser) {
+        console.log("got success login")
+        navigate('/dashboard')
+      })
+      .catch(error => {
+        console.log(error)
+      })
+  }
 
   return (
-    <div className="col-md-12">
-      <div className="card card-container">
-        <img
-          src="//ssl.gstatic.com/accounts/ui/avatar_2x.png"
-          alt="profile-img"
-          className="profile-img-card"
-        />
-
-        <Form onSubmit={handleLogin} ref={form}>
-          <div className="form-group">
-            <label htmlFor="username">Username</label>
-            <Input
-              type="text"
-              className="form-control"
-              name="username"
-              value={username}
-              onChange={onChangeUsername}
-              validations={[required]}
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <Input
-              type="password"
-              className="form-control"
-              name="password"
-              value={password}
-              onChange={onChangePassword}
-              validations={[required]}
-            />
-          </div>
-
-          <div className="form-group">
-            <button className="btn btn-primary btn-block" disabled={loading}>
-              {loading && (
-                <span className="spinner-border spinner-border-sm"></span>
-              )}
-              <span>Login</span>
-            </button>
-          </div>
-
-          {message && (
-            <div className="form-group">
-              <div className="alert alert-danger" role="alert">
-                {message}
-              </div>
-            </div>
-          )}
-          <CheckButton style={{ display: "none" }} ref={checkBtn} />
-        </Form>
-      </div>
+    <div className="bg-light min-vh-100 d-flex flex-row align-items-center">
+      <CContainer>
+        <CRow className="justify-content-center">
+          <CCol md={8}>
+            <CCardGroup>
+              <CCard className="p-4">
+                <CCardBody>
+                  <CForm onSubmit={handleSubmit}>
+                    <h1>Login</h1>
+                    <p className="text-medium-emphasis">
+                      Sign In to your account
+                    </p>
+                    <CInputGroup className="mb-3">
+                      <CInputGroupText>
+                        <CIcon icon={cilUser} />
+                      </CInputGroupText>
+                      <CFormInput
+                        value={emailId}
+                        onChange={e => setEmailId(e.target.value)}
+                        type="email"
+                        placeholder="EmailID"
+                        autoComplete="EmailID"
+                      />
+                    </CInputGroup>
+                    <CInputGroup className="mb-4">
+                      <CInputGroupText>
+                        <CIcon icon={cilLockLocked} />
+                      </CInputGroupText>
+                      <CFormInput
+                        value={password}
+                        onChange={e => setPassword(e.target.value)}
+                        type="password"
+                        placeholder="Password"
+                        autoComplete="current-password"
+                      />
+                    </CInputGroup>
+                    <CRow>
+                      <CCol xs={6}>
+                        <CButton type="submit" color="primary" className="px-4">
+                          Login
+                        </CButton>
+                      </CCol>
+                      <CCol xs={6} className="text-right">
+                        <CButton color="link" className="px-0">
+                          Forgot password?
+                        </CButton>
+                      </CCol>
+                    </CRow>
+                  </CForm>
+                </CCardBody>
+              </CCard>
+              <CCard
+                className="text-white bg-primary py-5"
+                style={{ width: "44%" }}
+              >
+                <CCardBody className="text-center">
+                  <div>
+                    <h2>Sign up</h2>
+                    <p>
+                      Lorem ipsum dolor sit amet, consectetur adipisicing elit,
+                      sed do eiusmod tempor incididunt ut labore et dolore magna
+                      aliqua.
+                    </p>
+                    <Link to="/register">
+                      <CButton
+                        color="primary"
+                        className="mt-3"
+                        active
+                        tabIndex={-1}
+                      >
+                        Register Now!
+                      </CButton>
+                    </Link>
+                  </div>
+                </CCardBody>
+              </CCard>
+            </CCardGroup>
+          </CCol>
+        </CRow>
+      </CContainer>
     </div>
-  );
-};
+  )
+}
 
-export default Login;
+export default Login
